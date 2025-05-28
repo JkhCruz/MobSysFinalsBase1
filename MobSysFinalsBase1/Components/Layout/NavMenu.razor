@@ -1,90 +1,82 @@
 ﻿@inject NavigationManager Nav
 @inject AppShellContext AppShell
-<style>
-    .userpane {
-        font-size: 24px;
-        color: green;
-        text-transform: capitalize;
-    }
-</style>
-<nav class="mobile-nav" onclick="hideMenu()">
-    @if (AppShell.IsUserLoggedIn)
-    {
-        if (AppShell.CurrentUser!=null)
-        {
-            <div class="userpane">
-                <i class="fas fa-user"></i>&nbsp;
-                Hi @AppShell.CurrentUser.Username
-                <a class="btn btn-outline-danger" href="javascript:void(0)" style="float:right" @onclick="Logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                </a>
 
+<button class="navmenu-burger"
+        @onclick="() => IsOpen = true"
+        aria-label="Open menu"
+        style="@(IsOpen ? "display:none;" : "")">
+    <i class="fas fa-bars"></i>
+</button>
+
+@if (IsOpen)
+{
+    <div class="navmenu-overlay" @onclick="HandleOverlayClick">
+        <nav class="navmenu-panel open" @onclick:stopPropagation>
+            <div class="navmenu-header">
+                <div class="navmenu-header-user">
+                    <div class="navmenu-avatar-placeholder">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    @if (AppShell.IsUserLoggedIn && AppShell.CurrentUser != null)
+                    {
+                        <span class="navmenu-username">Hi, @AppShell.CurrentUser.Username</span>
+                    }
+                    else
+                    {
+                        <span class="navmenu-brand">Bruhmazon</span>
+                    }
+                </div>
+                <button class="navmenu-close" @onclick="() => IsOpen = false" aria-label="Close menu">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-        }
-    }
-    <ul>
-        <li>
-            <a class="nav-link" href="">
-                <i class="fa fa-home"></i>&nbsp;Home
-            </a>
-        </li>
-        @* <li>
-            <a class="nav-link" href="catalog">
-                <i class="fa fa-store"></i>&nbsp;Catalog
-            </a>
-        </li>
-        <li>
-            <a class="nav-link" href="mycart">
-                <i class="fa fa-shopping-cart"></i>&nbsp;My Cart
-            </a>
-        </li>
-        <li>
-            <a class="nav-link" href="myorders">
-                <i class="fa fa-truck"></i>&nbsp;My Orders
-            </a>
-        </li> *@
-    </ul>
-    <hr />
-    @if (AppShell.IsUserLoggedIn)
-    {
-        <ul>
-            <!--Admin Pages Here-->
-            @* <li>
-                <a class="nav-link" href="products">
-                    <i class="fa fa-dolly-flatbed"></i>&nbsp;Products
-                </a>
-            </li>
-            <li>
-                <a class="nav-link" href="orders">
-                    <i class="fa fa-cash-register"></i>&nbsp;Orders
-                </a>
-            </li> *@
-            <li>
-                <a class="nav-link" href="users">
-                    <i class="fa fa-users"></i>&nbsp;Users
-                </a>
-            </li>
-        </ul>
-    }
-    else
-    {
-        <ul>
-            <li>
-                <a class="nav-link" href="register">
-                    <i class="fa fa-list"></i>&nbsp;Register
-                </a>
-            </li>
-            <li>
-                <a class="nav-link" href="login">
-                    <i class="fa fa-sign-in-alt"></i>&nbsp;Login
-                </a>
-            </li>
-        </ul>
-    }
 
-</nav>
+            <ul class="navmenu-list">
+               
+                @if (AppShell.IsUserLoggedIn)
+                {
+                    <li>
+                        <a class="navmenu-link @(IsActive(""))" href="" @onclick='() => NavigateAndClose("")'>
+                            <span class="navmenu-icon"><i class="fa fa-home"></i></span>
+                            Home
+                        </a>
+                    </li>
+                    <li>
+                        <a class="navmenu-link @(IsActive("recipes"))" href="recipes" @onclick='() => NavigateAndClose("recipes")'>
+                            <span class="navmenu-icon"><i class="fa fa-heart"></i></span>
+                            Recipes
+                        </a>
+                    </li>
+                    <li>
+                        <button class="navmenu-link navmenu-logout-btn" @onclick="Logout" type="button">
+                            <span class="navmenu-icon"><i class="fas fa-sign-out-alt"></i></span>
+                            Logout
+                        </button>
+                    </li>
+                }
+                else
+                {
+                    <li>
+                        <a class="navmenu-link @(IsActive("register"))" href="register" @onclick='() => NavigateAndClose("register")'>
+                            <span class="navmenu-icon"><i class="fa fa-list"></i></span>
+                            Register
+                        </a>
+                    </li>
+                    <li>
+                        <a class="navmenu-link @(IsActive("login"))" href="login" @onclick='() => NavigateAndClose("login")'>
+                            <span class="navmenu-icon"><i class="fa fa-sign-in-alt"></i></span>
+                            Login
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+}
 
 @code {
+    private bool IsOpen { get; set; }
+
     protected override void OnInitialized()
     {
         AppShell.OnChange += StateHasChanged;
@@ -95,12 +87,33 @@
         AppShell.OnChange -= StateHasChanged;
     }
 
-    public async void Logout()
+    public async Task Logout()
     {
         AppShell.ClearSessionUser();
         AppShell.CurrentUser = null;
         AppShell.IsUserLoggedIn = false;
         await InvokeAsync(StateHasChanged);
-        Nav.NavigateTo($"/login?returnto=home");
+        Nav.NavigateTo($"/login");
+        IsOpen = false;
+    }
+
+    private void HandleOverlayClick()
+    {
+        IsOpen = false;
+    }
+
+    private string IsActive(string path)
+    {
+        var uri = Nav.ToBaseRelativePath(Nav.Uri).TrimEnd('/');
+        return uri == path ? "active" : "";
+    }
+
+    private void NavigateAndClose(string path)
+    {
+        IsOpen = false;
+        if (string.IsNullOrEmpty(path))
+            Nav.NavigateTo("/");
+        else
+            Nav.NavigateTo(path);
     }
 }
