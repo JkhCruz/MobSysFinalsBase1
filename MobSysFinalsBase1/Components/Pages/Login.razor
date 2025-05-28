@@ -1,47 +1,61 @@
 ﻿@page "/login"
-<form @onsubmit="LoginUser">
-    <div class="card enhanced">
+
+<form @onsubmit="LoginUser" autocomplete="off" class="mt-5">
+    <div class="card shadow-lg p-4 border-0 mx-auto" style="max-width: 400px;">
         @if (!string.IsNullOrWhiteSpace(StatusMessage))
         {
-            <div class="alert alert-@Status">
-                <i class="fa fa-info-circle"></i>&nbsp;
-                @StatusMessage
+            <div class="alert alert-@Status d-flex align-items-center mb-4">
+                <i class="fa fa-info-circle me-2"></i>
+                <span>@StatusMessage</span>
             </div>
         }
-        <fieldset>
-            <legend>Username:</legend>
-            <input class="form-control" type="text" @bind="Model.Username" placeholder="Username" title="Username" />
-        </fieldset>
-        <fieldset>
-            <legend>Password:</legend>
-            <input type="password" @bind="Model.Password" placeholder="Password" title="Password" class="form-control ">
-        </fieldset>
-        <button type="submit" class="btn btn-warning scaledbutton">
-            <i class="fas fa-sign-in-alt"></i>&nbsp;Log In
+        <div class="mb-3">
+            <label for="username" class="form-label fw-semibold">Username</label>
+            <input id="username"
+                   class="form-control"
+                   type="text"
+                   @bind="Model.Username"
+                   placeholder="Username"
+                   title="Username"
+                   autocomplete="username"
+                   required />
+        </div>
+        <div class="mb-4">
+            <label for="password" class="form-label fw-semibold">Password</label>
+            <input id="password"
+                   class="form-control"
+                   type="password"
+                   @bind="Model.Password"
+                   placeholder="Password"
+                   title="Password"
+                   autocomplete="current-password"
+                   required />
+        </div>
+        <button type="submit" class="btn btn-warning w-100 py-2">
+            <i class="fas fa-sign-in-alt me-1"></i> Log In
         </button>
     </div>
 </form>
 
 <script>
-    $(function(){
-        $('.form-control').on('focus',function(){
-            $(this).attr('placeholder','');
-            $(this).parent().addClass('hasFocus');
-        });
-        $('.form-control').on('blur',function(){
-            $(this).attr('placeholder',$(this).attr('title'));
-            $(this).parent().removeClass('hasFocus');
-        });
-        $('.form-control').each(function(){
-            $(this).parent().removeClass('hasText');
-            if($(this).val().length > 0){
-                $(this).parent().addClass('hasText');
+    // Enhance UX: clear placeholder on focus, restore on blur, manage hasText class
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll('.form-control').forEach(function(input) {
+            input.addEventListener('focus', function() {
+                this.setAttribute('placeholder', '');
+                this.parentElement.classList.add('hasFocus');
+            });
+            input.addEventListener('blur', function() {
+                this.setAttribute('placeholder', this.getAttribute('title'));
+                this.parentElement.classList.remove('hasFocus');
+            });
+            // Initial hasText state
+            input.parentElement.classList.remove('hasText');
+            if (input.value.length > 0) {
+                input.parentElement.classList.add('hasText');
             }
-            $(this).on('change',function(){
-                $(this).parent().removeClass('hasText');
-                if($(this).val().length > 0){
-                    $(this).parent().addClass('hasText');
-                }
+            input.addEventListener('input', function() {
+                input.parentElement.classList.toggle('hasText', input.value.length > 0);
             });
         });
     });

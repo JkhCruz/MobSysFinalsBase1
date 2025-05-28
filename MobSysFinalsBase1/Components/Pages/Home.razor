@@ -1,26 +1,48 @@
 ﻿@page "/"
+
 <SectionContent SectionName="page-buttons">
-    <div id="searchBox" class="input-group header-search" style="display:none;">
-        <span class="input-group-text text-warning"><i class="fa fa-search"></i></span>
-        <input id="txtSearch" type="text" class="form-control" placeholder="Search" value="@Model.Search" @onchange="SearchTerm" />
-        <span class="input-group-text" onclick="hideSearchBox()"><i class="fa fa-times"></i></span>
+    <div class="d-flex justify-content-end align-items-center mb-4">
+        <div id="searchBox" class="input-group header-search" style="max-width: 300px; display: none;">
+            <span class="input-group-text text-warning bg-transparent border-end-0">
+                <i class="fa fa-search"></i>
+            </span>
+            <input id="txtSearch"
+                   type="text"
+                   class="form-control border-start-0 border-end-0"
+                   placeholder="Search"
+                   value="@Model.Search"
+                   @onchange="SearchTerm"
+                   style="box-shadow: none;" />
+            <button type="button" class="btn btn-outline-secondary border-start-0" onclick="hideSearchBox()" tabindex="-1" aria-label="Close search">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+        <span id="controlBox">
+            <button class="btn btn-outline-warning ms-2" onclick="showSearchBox()" aria-label="Open search">
+                <i class="fa fa-search"></i>
+            </button>
+        </span>
     </div>
-    <span id="controlBox">
-        <button class="btn text-warning" onclick="showSearchBox()">
-            <i class="fa fa-search"></i>
-        </button>
-    </span>    
 </SectionContent>
-<section>
-    <h1>Welcome</h1>
+
+<section class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <h1 class="display-4 mb-4">Welcome</h1>
+        </div>
+    </div>
 </section>
+
 <script>
-    function showSearchBox(){
-        $('#searchBox').show();
-        $('#controlBox').hide();
+    function showSearchBox() {
+        document.getElementById('searchBox').style.display = "flex";
+        document.getElementById('controlBox').style.display = "none";
+        setTimeout(function() {
+            document.getElementById('txtSearch').focus();
+        }, 100);
     }
-    function hideSearchBox(){
-        $('#searchBox').hide();
-        $('#controlBox').show();
+    function hideSearchBox() {
+        document.getElementById('searchBox').style.display = "none";
+        document.getElementById('controlBox').style.display = "inline";
     }
 </script>
