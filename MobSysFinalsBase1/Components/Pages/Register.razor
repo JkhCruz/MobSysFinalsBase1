@@ -1,63 +1,101 @@
 ﻿@page "/register"
-<form @onsubmit="RegisterUser">
-    <div class="card enhanced">
+
+<form @onsubmit="RegisterUser" autocomplete="off" class="mt-5">
+    <div class="card shadow-lg p-4 border-0 mx-auto" style="max-width: 500px;">
         @if (!string.IsNullOrWhiteSpace(StatusMessage))
         {
-            <div class="alert alert-@Status">
-                <i class="fa fa-info-circle"></i>&nbsp;
-                @StatusMessage
+            <div class="alert alert-@Status d-flex align-items-center mb-4">
+                <i class="fa fa-info-circle me-2"></i>
+                <span>@StatusMessage</span>
             </div>
         }
-        <fieldset>
-            <legend>Username:</legend>
-            <input class="form-control" type="text" @bind="Model.Username" placeholder="Username" title="Username" />
-        </fieldset>
-        <fieldset>
-            <legend>Password:</legend>
-            <input type="password" @bind="Model.Password" placeholder="Password" title="Password" class="form-control" />
-        </fieldset>
-        <fieldset>
-            <legend>First Name:</legend>
-            <input class="form-control" type="text" @bind="Model.FirstName" placeholder="First Name" title="First Name" />
-        </fieldset>
-        <fieldset>
-            <legend>Last Name:</legend>
-            <input class="form-control" type="text" @bind="Model.LastName" placeholder="Last Name" title="Last Name" />
-        </fieldset>
-        <fieldset>
-            <legend>Mobile:</legend>
-            <input class="form-control" type="text" @bind="Model.MobileNumber" placeholder="Mobile" title="Mobile" />
-        </fieldset>
-        <fieldset>
-            <legend>Address:</legend>
-            <textarea class="form-control" @bind="Model.Address" placeholder="Address" title="Address"></textarea>
-        </fieldset>
-        <button type="submit" class="btn btn-warning scaledbutton">
-            <i class="fas fa-user-plus"></i>&nbsp;Register
+        <div class="mb-3">
+            <label for="username" class="form-label fw-semibold">Username</label>
+            <input id="username"
+                   class="form-control"
+                   type="text"
+                   @bind="Model.Username"
+                   placeholder="Username"
+                   title="Username"
+                   autocomplete="username"
+                   required />
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label fw-semibold">Password</label>
+            <input id="password"
+                   class="form-control"
+                   type="password"
+                   @bind="Model.Password"
+                   placeholder="Password"
+                   title="Password"
+                   autocomplete="new-password"
+                   required />
+        </div>
+        <div class="mb-3">
+            <label for="firstname" class="form-label fw-semibold">First Name</label>
+            <input id="firstname"
+                   class="form-control"
+                   type="text"
+                   @bind="Model.FirstName"
+                   placeholder="First Name"
+                   title="First Name"
+                   required />
+        </div>
+        <div class="mb-3">
+            <label for="lastname" class="form-label fw-semibold">Last Name</label>
+            <input id="lastname"
+                   class="form-control"
+                   type="text"
+                   @bind="Model.LastName"
+                   placeholder="Last Name"
+                   title="Last Name"
+                   required />
+        </div>
+        <div class="mb-3">
+            <label for="mobile" class="form-label fw-semibold">Mobile</label>
+            <input id="mobile"
+                   class="form-control"
+                   type="text"
+                   @bind="Model.MobileNumber"
+                   placeholder="Mobile"
+                   title="Mobile"
+                   required />
+        </div>
+        <div class="mb-4">
+            <label for="address" class="form-label fw-semibold">Address</label>
+            <textarea id="address"
+                      class="form-control"
+                      @bind="Model.Address"
+                      placeholder="Address"
+                      title="Address"
+                      rows="2"
+                      required></textarea>
+        </div>
+        <button type="submit" class="btn btn-warning w-100 py-2">
+            <i class="fas fa-user-plus me-1"></i>Register
         </button>
     </div>
 </form>
 
 <script>
-    $(function(){
-        $('.form-control').on('focus',function(){
-            $(this).attr('placeholder','');
-            $(this).parent().addClass('hasFocus');
-        });
-        $('.form-control').on('blur',function(){
-            $(this).attr('placeholder',$(this).attr('title'));
-            $(this).parent().removeClass('hasFocus');
-        });
-        $('.form-control').each(function(){
-            $(this).parent().removeClass('hasText');
-            if($(this).val().length > 0){
-                $(this).parent().addClass('hasText');
+ 
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll('.form-control').forEach(function(input) {
+            input.addEventListener('focus', function() {
+                this.setAttribute('placeholder', '');
+                this.parentElement.classList.add('hasFocus');
+            });
+            input.addEventListener('blur', function() {
+                this.setAttribute('placeholder', this.getAttribute('title'));
+                this.parentElement.classList.remove('hasFocus');
+            });
+     
+            input.parentElement.classList.remove('hasText');
+            if (input.value.length > 0) {
+                input.parentElement.classList.add('hasText');
             }
-            $(this).on('change',function(){
-                $(this).parent().removeClass('hasText');
-                if($(this).val().length > 0){
-                    $(this).parent().addClass('hasText');
-                }
+            input.addEventListener('input', function() {
+                input.parentElement.classList.toggle('hasText', input.value.length > 0);
             });
         });
     });
