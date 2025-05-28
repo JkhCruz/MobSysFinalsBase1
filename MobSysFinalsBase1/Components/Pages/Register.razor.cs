@@ -37,7 +37,7 @@ namespace MobSysFinalsBase1.Components.Pages
             Model.CreatedBy = "SYSTEM";
             Model.ModifiedBy = "SYSTEM";
             Model.CreatedDate = DateTime.Now;
-            Model.ModifiedDate = DateTime.Now;            
+            Model.ModifiedDate = DateTime.Now;
 
             await DB.SaveUser(Model);
             Status = "success";

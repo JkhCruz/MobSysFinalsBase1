@@ -23,7 +23,7 @@
                     }
                     else
                     {
-                        <span class="navmenu-brand">Bruhmazon</span>
+                        <span class="navmenu-brand">My Recipes</span>
                     }
                 </div>
                 <button class="navmenu-close" @onclick="() => IsOpen = false" aria-label="Close menu">
@@ -45,6 +45,11 @@
                         <a class="navmenu-link @(IsActive("recipes"))" href="recipes" @onclick='() => NavigateAndClose("recipes")'>
                             <span class="navmenu-icon"><i class="fa fa-heart"></i></span>
                             Recipes
+                        </a>
+                    </li><li>
+                        <a class="navmenu-link @(IsActive("addrecipe"))" href="addrecipe" @onclick='() => NavigateAndClose("addrecipe")'>
+                            <span class="navmenu-icon"><i class="fa fa-heart"></i></span>
+                            Add Recipe
                         </a>
                     </li>
                     <li>

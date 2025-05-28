@@ -1,0 +1,169 @@
+﻿@page "/addrecipe"
+@inject MobSysFinalsBase1.Shared.DatabaseContext DB
+@using MobSysFinalsBase1.Models
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Web
+
+<h2>Add Recipe</h2>
+<EditForm Model="@RecipeModel" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label>Name</label>
+        <InputText class="form-control" @bind-Value="RecipeModel.Name" required />
+    </div>
+    <div class="mb-3">
+        <label>Preparation Time (minutes)</label>
+        <InputNumber class="form-control" @bind-Value="RecipeModel.PrepTimeMinutes" required />
+    </div>
+    <div class="mb-3">
+        <label>Measurement Unit</label>
+        <InputSelect class="form-control" @bind-Value="RecipeModel.Unit">
+            <option value="">Select a unit</option>
+            <option value="@MeasurementUnit.Metric">Metric</option>
+            <option value="@MeasurementUnit.US">US</option>
+        </InputSelect>
+    </div>
+    <div class="mb-3">
+        <label>Ingredients</label>
+        <div class="input-group mb-2">
+            <input class="form-control"
+                   placeholder="Add ingredient"
+                   @bind="NewIngredient"
+                   @onkeydown="OnIngredientKeyDown" />
+            <button class="btn btn-outline-success" type="button" @onclick="AddIngredient">
+                <i class="fa fa-plus"></i> Add
+            </button>
+        </div>
+        <ul class="list-group">
+            @for (int i = 0; i < Ingredients.Count; i++)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                    <span>@Ingredients[i]</span>
+                    <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => RemoveIngredient(i)">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </li>
+            }
+        </ul>
+    </div>
+    <div class="mb-3">
+        <label>Steps</label>
+        <div class="input-group mb-2">
+            <input class="form-control"
+                   placeholder="Add step"
+                   @bind="NewStep"
+                   @onkeydown="OnStepKeyDown" />
+            <button class="btn btn-outline-success" type="button" @onclick="AddStep">
+                <i class="fa fa-plus"></i> Add
+            </button>
+        </div>
+        <ol class="list-group list-group-numbered">
+            @for (int i = 0; i < Steps.Count; i++)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                    <span>@Steps[i]</span>
+                    <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => RemoveStep(i)">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </li>
+            }
+        </ol>
+    </div>
+    <div class="mb-3">
+        <label>Picture</label>
+        <InputFile OnChange="OnInputFileChange" accept="image/*" />
+        @if (!string.IsNullOrEmpty(RecipeModel.ImageBase64))
+        {
+            <img src="data:image/png;base64,@RecipeModel.ImageBase64" style="max-width:100px;max-height:100px;margin-top:10px" />
+        }
+    </div>
+    <button class="btn btn-success" type="submit">Add Recipe</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(StatusMessage))
+{
+    <div class="alert alert-info mt-3">@StatusMessage</div>
+}
+
+@code {
+    Recipe RecipeModel = new Recipe();
+    string StatusMessage;
+
+    List<string> Ingredients = new List<string>();
+    string NewIngredient;
+
+    List<string> Steps = new List<string>();
+    string NewStep;
+
+    private async Task HandleValidSubmit()
+    {
+        RecipeModel.IngredientsJson = System.Text.Json.JsonSerializer.Serialize(Ingredients);
+        RecipeModel.Steps = System.Text.Json.JsonSerializer.Serialize(Steps);
+        await DB.SaveRecipe(RecipeModel);
+        StatusMessage = "Recipe added!";
+        RecipeModel = new Recipe();
+        Ingredients.Clear();
+        Steps.Clear();
+        NewIngredient = string.Empty;
+        NewStep = string.Empty;
+    }
+
+    private void AddIngredient()
+    {
+        if (!string.IsNullOrWhiteSpace(NewIngredient))
+        {
+            Ingredients.Add(NewIngredient.Trim());
+            NewIngredient = string.Empty;
+        }
+    }
+
+    private void RemoveIngredient(int index)
+    {
+        if (index >= 0 && index < Ingredients.Count)
+            Ingredients.RemoveAt(index);
+    }
+
+    private void AddStep()
+    {
+        if (!string.IsNullOrWhiteSpace(NewStep))
+        {
+            Steps.Add(NewStep.Trim());
+            NewStep = string.Empty;
+        }
+    }
+
+    private void RemoveStep(int index)
+    {
+        if (index >= 0 && index < Steps.Count)
+            Steps.RemoveAt(index);
+    }
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            var buffer = new byte[file.Size];
+            await file.OpenReadStream(maxAllowedSize: 2 * 1024 * 1024).ReadAsync(buffer);
+            RecipeModel.ImageBase64 = Convert.ToBase64String(buffer);
+        }
+    }
+
+    private void OnIngredientKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            AddIngredient();
+        }
+    }
+
+    private void OnStepKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            AddStep();
+        }
+    }
+}

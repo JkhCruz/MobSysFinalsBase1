@@ -1,0 +1,240 @@
+﻿@page "/recipes"
+@inject MobSysFinalsBase1.Shared.DatabaseContext DB
+@using MobSysFinalsBase1.Models
+@using System.Text.Json
+@using Microsoft.AspNetCore.Components
+
+<h2>Recipes</h2>
+<div class="mb-3">
+    <label>View as:</label>
+    <select class="form-select d-inline w-auto ms-2" @bind="ViewMode">
+        <option value="grid">Grid</option>
+        <option value="list">List</option>
+    </select>
+    <label class="ms-4">Display Units:</label>
+    <select @bind="SelectedUnit" class="form-select d-inline w-auto ms-2">
+        <option value="Metric">Metric</option>
+        <option value="US">US</option>
+    </select>
+</div>
+@if (RecipesList == null)
+{
+    <div>Loading...</div>
+}
+else if (RecipesList.Count == 0)
+{
+    <div>No recipes found. <a href="/addrecipe">Add one now!</a></div>
+}
+else if (ViewMode == "grid")
+{
+    <div class="row row-cols-1 row-cols-md-3 g-3">
+        @foreach (var recipe in RecipesList)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm compact-card">
+                    <div class="d-flex flex-column h-100">
+                        <button class="btn card-btn text-start p-0 border-0 bg-transparent w-100"
+                                @onclick="@(() => ShowRecipeInfo(recipe))" style="flex:1 1 auto;">
+                            <div class="card-img-top text-center bg-light" style="height:120px;display:flex;align-items:center;justify-content:center;">
+                                @if (!string.IsNullOrEmpty(recipe.ImageBase64))
+                                {
+                                    <img src="data:image/png;base64,@recipe.ImageBase64" style="max-height:100px;max-width:100%;object-fit:contain;" alt="@recipe.Name" />
+                                }
+                                else
+                                {
+                                    <span class="text-muted" style="font-size:2rem;">No Image</span>
+                                }
+                            </div>
+                            <div class="card-body py-2 px-3">
+                                <h6 class="card-title mb-1">@recipe.Name</h6>
+                                <div class="mb-1 small text-muted">
+                                    <b>Prep:</b> @recipe.PrepTimeMinutes min
+                                    <span class="mx-1">|</span>
+                                    <b>Unit:</b> @recipe.Unit
+                                </div>
+                            </div>
+                        </button>
+                        <div class="card-footer text-end py-2 px-2">
+                            <button class="btn btn-warning btn-sm me-2" @onclick="@(() => EditRecipe(recipe))">
+                                <i class="fa fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-danger btn-sm" @onclick="@(() => DeleteRecipe(recipe))">
+                                <i class="fa fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="list-group">
+        @foreach (var recipe in RecipesList)
+        {
+            <div class="list-group-item d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center" style="min-width:0;">
+                    <button class="btn p-0 border-0 bg-transparent text-start me-2" style="width:60px;height:60px;" @onclick="@(() => ShowRecipeInfo(recipe))">
+                        @if (!string.IsNullOrEmpty(recipe.ImageBase64))
+                        {
+                            <img src="data:image/png;base64,@recipe.ImageBase64" style="width:100%;height:100%;object-fit:cover;" />
+                        }
+                        else
+                        {
+                            <span class="text-muted small">No Image</span>
+                        }
+                    </button>
+                    <div style="min-width:0;">
+                        <div class="fw-bold text-truncate">@recipe.Name</div>
+                        <div class="small text-muted text-truncate">Prep: @recipe.PrepTimeMinutes min | Unit: @recipe.Unit</div>
+                    </div>
+                </div>
+                <div class="d-flex">
+                    <button class="btn btn-warning btn-sm me-2" @onclick="@(() => EditRecipe(recipe))">
+                        <i class="fa fa-edit"></i> Edit
+                    </button>
+                    <button class="btn btn-danger btn-sm" @onclick="@(() => DeleteRecipe(recipe))">
+                        <i class="fa fa-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+}
+@if (SelectedRecipe != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.4)">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@SelectedRecipe.Name</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-2">
+                        @if (!string.IsNullOrEmpty(SelectedRecipe.ImageBase64))
+                        {
+                            <img src="data:image/png;base64,@SelectedRecipe.ImageBase64" style="max-height:180px;max-width:100%;object-fit:contain;" alt="@SelectedRecipe.Name" />
+                        }
+                    </div>
+                    <div><b>Preparation Time:</b> @SelectedRecipe.PrepTimeMinutes min</div>
+                    <div><b>Unit:</b> @SelectedRecipe.Unit</div>
+                    <div class="mt-2"><b>Ingredients:</b>
+                        <ul>
+                            @foreach (var ing in RenderIngredientsList(SelectedRecipe.IngredientsJson, SelectedRecipe.Unit))
+                            {
+                                <li>@ing</li>
+                            }
+                        </ul>
+                    </div>
+                    <div class="mt-2"><b>Steps:</b>
+                        <ol>
+                            @foreach (var step in RenderStepsList(SelectedRecipe.Steps))
+                            {
+                                <li>@step</li>
+                            }
+                        </ol>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseModal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+<style>
+    .compact-card {
+        font-size: 0.95rem;
+        min-height: 220px;
+        transition: box-shadow 0.2s;
+    }
+    .compact-card:hover, .compact-card:focus-within {
+        box-shadow: 0 0 12px #ffecb3;
+    }
+    .card-btn:focus {
+        outline: 2px solid #ffecb3;
+    }
+    .modal-backdrop {
+        z-index: 1040;
+    }
+    .modal {
+        z-index: 1050;
+    }
+</style>
+@code {
+    List<Recipe> RecipesList;
+    MeasurementUnit SelectedUnit = MeasurementUnit.Metric;
+    string ViewMode = "grid";
+    Recipe SelectedRecipe = null;
+    [Inject] NavigationManager Navigation { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        RecipesList = await DB.Recipes();
+    }
+
+    List<string> RenderIngredientsList(string ingredientsJson, MeasurementUnit storedUnit)
+    {
+        if (string.IsNullOrWhiteSpace(ingredientsJson))
+            return new List<string>();
+
+        List<string> items;
+        try
+        {
+            items = JsonSerializer.Deserialize<List<string>>(ingredientsJson) ?? new List<string>();
+        }
+        catch
+        {
+            items = ingredientsJson.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim()).ToList();
+        }
+
+        if (storedUnit != SelectedUnit)
+            return items.Select(i => $"{i} ({SelectedUnit})").ToList();
+        else
+            return items;
+    }
+
+    List<string> RenderStepsList(string stepsRaw)
+    {
+        if (string.IsNullOrWhiteSpace(stepsRaw))
+            return new List<string>();
+        try
+        {
+            return JsonSerializer.Deserialize<List<string>>(stepsRaw) ?? stepsRaw.Split('\n').Where(s => !string.IsNullOrWhiteSpace(s)).ToList();
+        }
+        catch
+        {
+            return stepsRaw.Split('\n').Where(s => !string.IsNullOrWhiteSpace(s)).ToList();
+        }
+    }
+
+    void ShowRecipeInfo(Recipe recipe)
+    {
+        SelectedRecipe = recipe;
+    }
+    void CloseModal()
+    {
+        SelectedRecipe = null;
+    }
+
+    void EditRecipe(Recipe recipe)
+    {
+        // Make sure Recipe has an Id property, e.g. recipe.Id
+        Navigation.NavigateTo($"/editrecipe/{recipe.Id}");
+    }
+
+    async void DeleteRecipe(Recipe recipe)
+    {
+        // Make sure Recipe has an Id property
+        if (recipe != null)
+        {
+            await DB.DeleteRecipe(recipe.Id);
+            RecipesList.Remove(recipe);
+            StateHasChanged();
+        }
+    }
+}
