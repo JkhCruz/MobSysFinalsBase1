@@ -23,6 +23,7 @@ namespace MobSysFinalsBase1
 #endif
             builder.Services.AddSingleton<AppShellContext>();
             builder.Services.AddSingleton<DatabaseContext>();
+            builder.Services.AddScoped(sp => new HttpClient());
             return builder.Build();
         }
     }
