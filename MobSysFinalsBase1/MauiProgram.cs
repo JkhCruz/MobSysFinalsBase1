@@ -24,6 +24,7 @@ namespace MobSysFinalsBase1
             builder.Services.AddSingleton<AppShellContext>();
             builder.Services.AddSingleton<DatabaseContext>();
             builder.Services.AddScoped(sp => new HttpClient());
+            builder.Services.AddScoped<MealService>();
             return builder.Build();
         }
     }
